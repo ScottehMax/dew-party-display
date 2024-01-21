@@ -114,7 +114,6 @@ def new_party_image(mon: parsers.gaia.Pokemon) -> PIL.Image.Image:
     # draw EXP bar
     etl = parsers.gen3.experience_this_level(mon.experience, mon.growth)
     width = ceil(etl[0] / etl[1] * 64)
-    print(width)
 
     offset = 150 - width
 
