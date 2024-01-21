@@ -10,14 +10,25 @@ from PIL import ImageDraw
 
 import parsers.gaia
 import parsers.gen3
+from parsers import PokemonProtocol
+
 
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / ".." / ".."
 
-monimage_folder = BASE_DIR / "assets" / "pokemon" / "crystal"
+sprites = "pokeemerald-expansion"
+monimage_folder = BASE_DIR / "assets" / "pokemon" / sprites
 backup_monimage_folder = BASE_DIR / "assets" / "pokemon" / "pokeemerald-expansion"
 # item_folder = BASE_DIR / "assets" / "items"
 template_folder = BASE_DIR / "assets" / "template" / "gen2"
 fonts_folder = BASE_DIR / "assets" / "fonts"
+
+
+def set_sprite_folder(sprites_folder: str):
+    global sprites
+    global monimage_folder
+    sprites = sprites_folder
+    monimage_folder = BASE_DIR / "assets" / "pokemon" / sprites
+
 
 template = Image.open(template_folder / "partymember.png")
 shiny = Image.open(template_folder / "shiny.png")
@@ -31,17 +42,15 @@ hpy = (192, 136, 40)
 hpr = (184, 80, 72)
 
 
-def new_party_image(mon: parsers.gaia.Pokemon) -> PIL.Image.Image:
+def new_party_image(mon: PokemonProtocol) -> PIL.Image.Image:
     new_img = template.copy()
     draw = ImageDraw.Draw(new_img)
     draw.fontmode = "1"
 
     # draw the name
-    # mon.nickname = "CYNDAQUIL"
     draw.text((64, 17), mon.nickname, (0, 0, 0), font=font)
 
     # draw level
-    # mon.level = 5
     draw.text((120, 1), str(mon.level), (0, 0, 0), font=font)
 
     # draw species number
@@ -77,10 +86,10 @@ def new_party_image(mon: parsers.gaia.Pokemon) -> PIL.Image.Image:
     draw.text((64, 65), item_text, (0, 0, 0), font=font)
 
     # draw moves
-    # mon.moves = ["TACKLE", "LEER", None, None]
     for i in range(len(mon.moves)):
-        if mon.moves[i] is not None:
-            draw.text((64, 81 + (16 * i)), mon.moves[i], (0, 0, 0), font=font)
+        move = mon.moves[i]
+        if move is not None:
+            draw.text((64, 81 + (16 * i)), move, (0, 0, 0), font=font)
         else:
             draw.text((64, 81 + (16 * i)), "-", (0, 0, 0), font=font)
 
@@ -119,7 +128,7 @@ def new_party_image(mon: parsers.gaia.Pokemon) -> PIL.Image.Image:
 
     if width > 0:
         draw.rectangle((offset, 49, 150, 50), fill=(56, 152, 216))
-    
+
     # draw the sprite
     if mon.shiny:
         mon_fn = os.path.join(monimage_folder, f"{mon.species.lower()}-shiny.png")
@@ -137,6 +146,18 @@ def new_party_image(mon: parsers.gaia.Pokemon) -> PIL.Image.Image:
     new_img.alpha_composite(mon_img, (0, 0))
 
     return new_img
+
+
+def create_image_6x1(results):
+    width = 160
+    height = 144
+
+    img = Image.new('RGB', (width * 6, height), (255, 255, 255))
+    for i, mon in enumerate(results):
+        new_img = new_party_image(mon)
+        img.paste(new_img, (width * i, 0))
+
+    return img
 
 
 def create_image_3x2(results):

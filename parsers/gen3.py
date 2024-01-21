@@ -1,41 +1,13 @@
 import struct
+from typing import Optional, Type
 
+from parsers import PokemonProtocol
 
 
 DEBUG = False
 def p(*args, **kwargs):
     if DEBUG:
         print(*args, **kwargs)
-
-# with open(mon_file, "r", encoding="utf8") as f:
-#     MONLIST = f.read().splitlines()
-
-# with open(move_file, "r") as f:
-#     MOVELIST = f.read().splitlines()
-
-# with open(movepp_file, "r") as f:
-#     MOVEPPLIST = f.read().splitlines()
-#     MOVEPPLIST = [int(x) for x in MOVEPPLIST]
-
-# with open(item_file, "r") as f:
-#     ITEMLIST = f.read().splitlines()
-
-# with open(growth_file, "r") as f:
-#     growth = f.read().splitlines()
-#     GROWTH = {}
-#     for i in range(0, len(growth)):
-#         GROWTH[MONLIST[i]] = growth[i]
-
-# with open(nature_file, "r") as f:
-#     NATURES = f.read().splitlines()
-
-# with open(gender_file, "r") as f:
-#     GENDERS = f.read().splitlines()
-#     GENDERS = [int(x) for x in GENDERS]
-
-# import json
-# with open(growth_exp_file, "r") as f:
-#     GROWTH_EXP = json.load(f)
 
 
 ENCODING_TABLE = [
@@ -70,7 +42,7 @@ ENCODING_TABLE = [
     # 0xE0-0xEF
     "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "▶",
     # 0xF0-0xFF
-    ":", "Ä", "Ö", "Ü", "ä", "ö", "ü", " ", " ", " ", " ", " ", " ", " ", " ", " ", 
+    ":", "Ä", "Ö", "Ü", "ä", "ö", "ü", " ", " ", " ", " ", " ", " ", " ", " ", " ",
 ]
 
 
@@ -106,7 +78,7 @@ def decode(bytes: bytes) -> str:
     return "".join(ENCODING_TABLE[b] for b in bytes)
 
 
-def get_status(status_byte):
+def get_status(status_byte) -> Optional[str]:
     if status_byte & 0b1 or status_byte & 0b10 or status_byte & 0b100:
         return "SLP"
     elif status_byte & 0b1000:
@@ -121,7 +93,7 @@ def get_status(status_byte):
         return "TOX"
     else:
         return None
-    
+
 
 def level_to_experience_f(level: int, growth: str) -> int:
     if growth == "Erratic":
@@ -169,7 +141,7 @@ for g in GROWTH_TYPES:
 
 def level_to_experience(level: int, growth: str) -> int:
     return EXP_TABLE[growth][level - 1]
-        
+
 
 def experience_to_level(experience: int, growth: str) -> int:
     for i in range(100):
@@ -178,7 +150,9 @@ def experience_to_level(experience: int, growth: str) -> int:
     return 100
 
 
-def experience_this_level(exp: int, growth: str) -> tuple[int, int]:
+def experience_this_level(exp: int, growth: Optional[str]) -> tuple[int, int]:
+    if growth is None:
+        return 0, 0
     for i in range(100):
         if EXP_TABLE[growth][i] > exp:
             # current exp, next level exp (relative)
@@ -199,7 +173,7 @@ def make_parser(
     GROWTH,
     NATURES,
     GENDERS,
-):
+) -> Type[PokemonProtocol]:
     class Pokemon:
         def __init__(self, data: bytes):
             # 100 bytes.
@@ -244,7 +218,7 @@ def make_parser(
             # remove everything after the first 0xFF if it exists
             if 0xFF in data[0x14:0x1A]:
                 self.ot_name = self.ot_name[:data[0x14:0x1A].index(b'\xFF')]
-            
+
             p("OT name:", self.ot_name)
 
             # 0x1B: Markings
@@ -328,7 +302,7 @@ def make_parser(
             self.decrypted_data = decrypted
 
             p("Decrypted data:", self.decrypted_data)
-        
+
 
         def parse_substructure(self):
             order = DATA_ORDERS[self.pid % 24]
@@ -361,7 +335,7 @@ def make_parser(
             # except IndexError:
             #     self.species = "Bulbasaur"
             #     self.species_no = 1
-            
+
             item = struct.unpack_from("<H", self.decrypted_data, g_offset + 2)[0]
             if item != 0:
                 self.item = ITEMLIST[item - 1]
@@ -429,7 +403,7 @@ def make_parser(
             self.egg = bool(self.ivea & 0x40000000)
             # Ability is bit 31
             self.ability = self.ivea & 0x80000000
-            
+
             # split IVs into 5 bytes each
             self.hp_iv = ivs & 0x1F
             self.attack_iv = (ivs >> 5) & 0x1F
@@ -439,5 +413,5 @@ def make_parser(
             self.sp_defense_iv = (ivs >> 25) & 0x1F
 
             self.ivs = [self.hp_iv, self.attack_iv, self.defense_iv, self.sp_attack_iv, self.sp_defense_iv, self.speed_iv]
-    
+
     return Pokemon

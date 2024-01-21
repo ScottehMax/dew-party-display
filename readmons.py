@@ -3,8 +3,10 @@ import os
 import sys
 from math import ceil
 from pathlib import Path
+from typing import cast
 
 import parsers.gaia
+from themes import Theme
 
 
 current_directory = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -23,11 +25,14 @@ output_fn = folder / config["general"]["output_filename"]
 web_fn = folder / config["general"]["web_filename"]
 use_web = config["general"].getboolean("use_web")
 theme_name = config["general"]["theme"]
+sprites = config["general"]["sprites"]
+
 
 # import the theme from themes
 import importlib
 try:
-    theme = importlib.import_module(f"themes.{theme_name}")
+    theme = cast(Theme, importlib.import_module("." + theme_name, "themes"))
+    theme.set_sprite_folder(sprites)
 except ModuleNotFoundError:
     print(f"Theme {theme_name} not found.")
     sys.exit(1)

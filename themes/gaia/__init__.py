@@ -10,15 +10,24 @@ from PIL import ImageDraw
 
 import parsers.gaia
 import parsers.gen3
+from parsers import PokemonProtocol
 
 
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / ".." / ".."
 
-monimage_folder = BASE_DIR / "assets" / "pokemon" / "pokeemerald-expansion"
+sprites = "pokeemerald-expansion"
+monimage_folder = BASE_DIR / "assets" / "pokemon" / sprites
 backup_monimage_folder = BASE_DIR / "assets" / "pokemon" / "pokeemerald-expansion"
 item_folder = BASE_DIR / "assets" / "items"
 template_folder = BASE_DIR / "assets" / "template" / "gaia"
 fonts_folder = BASE_DIR / "assets" / "fonts"
+
+
+def set_sprite_folder(sprites_folder: str):
+    global sprites
+    global monimage_folder
+    sprites = sprites_folder
+    monimage_folder = BASE_DIR / "assets" / "pokemon" / sprites
 
 
 def draw_with_shadow(x, y, draw, text, font, color, shadow_color, anchor="la"):
@@ -53,7 +62,7 @@ def normalize_item_name(name: str) -> str:
     return name.lower()
 
 
-def new_party_image(mon: parsers.gaia.Pokemon) -> PIL.Image.Image:
+def new_party_image(mon: PokemonProtocol) -> PIL.Image.Image:
     new_img = template.copy()
     draw = ImageDraw.Draw(new_img)
 
