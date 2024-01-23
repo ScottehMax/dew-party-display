@@ -5,7 +5,8 @@ from math import ceil
 from pathlib import Path
 from typing import cast
 
-import parsers.gaia
+# import parsers.gaia
+import parsers.kep
 from themes import Theme
 
 
@@ -67,9 +68,14 @@ def main():
 
     with open(state_file, "rb") as f:
         for i in range(6):
-            f.seek(parsers.gaia.base_location + i*100)
-            monb = f.read(100)
-            mon = parsers.gaia.Pokemon(monb)
+            # f.seek(parsers.gaia.base_location + i*100)
+            # monb = f.read(100)
+            f.seek(parsers.kep.base_location + i*44)
+            monb = f.read(44)
+            f.seek(parsers.kep.base_location + 0x14a + i*11)
+            nicknameb = f.read(10)
+            print(nicknameb)
+            mon = parsers.kep.Pokemon(monb + nicknameb)
             if mon.species_no != 0:
                 results.append(mon)
 

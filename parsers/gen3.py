@@ -1,5 +1,6 @@
 import struct
 from typing import Optional, Type
+from math import floor
 
 from parsers import PokemonProtocol
 
@@ -98,28 +99,32 @@ def get_status(status_byte) -> Optional[str]:
 def level_to_experience_f(level: int, growth: str) -> int:
     if growth == "Erratic":
         if level < 50:
-            return int(((level ** 3) * (100 - level)) / 50)
+            return floor(((level ** 3) * (100 - level)) / 50)
         elif level < 68:
-            return int(((level ** 3) * (150 - level)) / 100)
+            return floor(((level ** 3) * (150 - level)) / 100)
         elif level < 98:
-            return int(((level ** 3) * int((1911 - (10 * level)) / 3)) / 500)
+            return floor(((level ** 3) * floor((1911 - (10 * level)) / 3)) / 500)
         elif level <= 100:
-            return int(((level ** 3) * (160 - level)) / 100)
+            return floor(((level ** 3) * (160 - level)) / 100)
     elif growth == "Fast":
-        return int(4 * (level ** 3) / 5)
+        return floor(4 * (level ** 3) / 5)
     elif growth == "Medium Fast":
         return level ** 3
     elif growth == "Medium Slow":
-        return int((6 / 5) * (level ** 3) - 15 * (level ** 2) + 100 * level - 140)
+        return floor((6 / 5) * (level ** 3) - 15 * (level ** 2) + 100 * level - 140)
     elif growth == "Slow":
-        return int(5 * (level ** 3) / 4)
+        return floor(5 * (level ** 3) / 4)
     elif growth == "Fluctuating":
         if level < 15:
-            return int((level ** 3) * ((int((level + 1) / 3) + 24) / 50))
+            return floor((level ** 3) * ((floor((level + 1) / 3) + 24) / 50))
         elif level < 36:
-            return int((level ** 3) * ((level + 14) / 50))
+            return floor((level ** 3) * ((level + 14) / 50))
         elif level <= 100:
-            return int((level ** 3) * ((int(level / 2) + 32) / 50))
+            return floor((level ** 3) * ((floor(level / 2) + 32) / 50))
+    elif growth == "Slightly Fast":
+        return floor((3 * (level ** 3))/4 + (10 * (level ** 2)) - 30)
+    elif growth == "Slightly Slow":
+        return floor((3 * (level ** 3))/4 + (20 * (level ** 2)) - 70)
 
     return 0
 
@@ -132,7 +137,9 @@ GROWTH_TYPES = [
     "Medium Fast",
     "Medium Slow",
     "Slow",
-    "Fluctuating"
+    "Fluctuating",
+    "Slightly Fast",
+    "Slightly Slow"
 ]
 
 for g in GROWTH_TYPES:

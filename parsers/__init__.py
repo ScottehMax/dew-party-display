@@ -1,6 +1,19 @@
 from typing import Optional, Protocol, TypeVar
 
 
+class Gen1Protocol(Protocol):
+    species: str
+    species_no: int
+    current_hp: int
+    max_hp: int
+    level: int
+    status: Optional[str]
+
+    moves: list[Optional[str]]
+    pp: list[int]
+    max_pp: list[int]
+
+
 class PokemonProtocol(Protocol):
     pid: int
     nature: str
