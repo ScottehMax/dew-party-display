@@ -5,9 +5,7 @@ from parsers import Gen1Protocol
 
 
 def get_status(status_byte) -> Optional[str]:
-    if status_byte & 0x04:
-        return "SLP"
-    elif status_byte & 0x08:
+    if status_byte & 0x08:
         return "PSN"
     elif status_byte & 0x10:
         return "BRN"
@@ -15,6 +13,9 @@ def get_status(status_byte) -> Optional[str]:
         return "FRZ"
     elif status_byte & 0x40:
         return "PAR"
+    elif status_byte > 0:
+        # sleep can also be 0x01-0x03
+        return "SLP"
     return None
 
 
